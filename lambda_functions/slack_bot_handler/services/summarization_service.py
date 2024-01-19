@@ -19,7 +19,7 @@ class Summarizer:
             messages=[
                 {
                     "role": "system",
-                    "content": "あなたは言語理解と要約の訓練を受けた高度に熟練したAIです。以下の文章を読み、簡潔に要約してほしい。最も重要な点を保持し、全文を読まなくても議論の要点を理解できるような、首尾一貫した読みやすい要約を目指してください。不必要な詳細や余談は避けてください。"
+                    "content": "You are a highly skilled AI trained in language comprehension and summarization. I would like you to read the following text and summarize it into a concise abstract paragraph. Aim to retain the most important points, providing a coherent and readable summary that could help a person understand the main points of the discussion without needing to read the entire text. Please avoid unnecessary details or tangential points."
                 },
                 {
                     "role": "user",
@@ -36,7 +36,7 @@ class Summarizer:
             messages=[
                 {
                     "role": "system",
-                    "content": "あなたは、情報を要点に絞り込むことを得意とする熟練したAIです。以下の文章をもとに、議論された、あるいは提起された主なポイントを特定し、リストアップしてください。これらは、議論の本質に関わる最も重要なアイデア、発見、またはトピックでなければなりません。あなたのゴールは、誰かが読めば、何が話し合われたのかすぐに理解できるようなリストを提供することです。"
+                    "content": "You are a proficient AI with a specialty in distilling information into key points. Based on the following text, identify and list the main points that were discussed or brought up. These should be the most important ideas, findings, or topics that are crucial to the essence of the discussion. Your goal is to provide a list that someone could read to quickly understand what was talked about."
                 },
                 {
                     "role": "user",
@@ -53,7 +53,7 @@ class Summarizer:
             messages=[
                 {
                     "role": "system",
-                    "content": "あなたは会話を分析し、行動項目を抽出するAIの専門家です。テキストを確認し、合意された、または実行する必要があると言及されたタスク、割り当て、またはアクションを特定してください。これらは、特定の個人に割り当てられたタスクかもしれませんし、グループが決定した一般的なアクションかもしれません。これらの行動項目を明確かつ簡潔に列記してください。"
+                    "content": "You are an AI expert in analyzing conversations and extracting action items. Please review the text and identify any tasks, assignments, or actions that were agreed upon or mentioned as needing to be done. These could be tasks assigned to specific individuals, or general actions that the group has decided to take. Please list these action items clearly and concisely."
                 },
                 {
                     "role": "user",
@@ -70,7 +70,7 @@ class Summarizer:
             messages=[
                 {
                     "role": "system",
-                    "content": "あなたは、情報を要点に絞り込むことを得意とする熟練したAIです。以下の要約を洗練させ、ポイントにまとめてください。冗長な部分を削除し、一貫性と簡潔さを確保し、全体的な読みやすさを向上させてください"
+                    "content": "You are a skilled AI who is adept at distilling information down to the essentials. Please refine the text and summarise it to the point. Remove redundancies, ensure consistency and brevity, and improve overall readability."
                 },
                 {
                     "role": "user",
@@ -106,9 +106,9 @@ class Summarizer:
 
         # Combine the results from all chunks
         return {
-            '会議の要約': cleaned_summary,
-            '要点': cleaned_key_points,
-            '行動項目': cleaned_action_items,
+            'summary': cleaned_summary,
+            'key_points': cleaned_key_points,
+            'action_items': cleaned_action_items,
         }
 
     def save_as_text_file(self, minutes, filename):

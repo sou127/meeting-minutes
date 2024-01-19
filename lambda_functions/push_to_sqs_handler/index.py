@@ -2,8 +2,6 @@ import json
 import boto3
 import logging
 from aiohttp import ClientError
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -19,8 +17,6 @@ slack_bot_token, input_queue_name = (
         "input_queue_name"
     ]
 )
-
-slack_client = WebClient(token=slack_bot_token)
 
 def _sendToSqS(queue_url: str, event: dict):
     try:

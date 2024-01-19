@@ -1,16 +1,19 @@
-import json
 import os
 import re
-import requests
 import sys
+import json
+import requests
+sys.path.append("utils")
 sys.path.append("services")
+from slack_utils import post_message
 from transcription_service import Transcriber
 from summarization_service import Summarizer
 from youtube_service import download_youtube_video
-sys.path.append("utils")
-from slack_utils import post_message
 
-def handle_slack_event(event, slack_client):
+def handle_slack_event(event, slack_client, slack_bot_token):
+  '''
+  Main Slack Handler Function
+  '''
   body_text = json.loads(event["Records"][0]["body"])
 
   channel = body_text["channel"]
@@ -20,20 +23,29 @@ def handle_slack_event(event, slack_client):
   if "files" in body_text:
     file = body_text.get("files")[0]
     filetype = file["filetype"]
+    title = file["title"]
     if filetype in ["mp3", "mp4", "mpeg", "m4a", "mpga", "webm", "wav"]:
-      handle_file_upload(file, channel, thread_ts, slack_client)
+      post_message(slack_client, channel, thread_ts, f"Processing {title}. Please wait a moment!")
+      handle_file_upload(file, channel, thread_ts, slack_client, slack_bot_token)
     else:
       post_invalid_file_message(channel, thread_ts, slack_client)
   else:
     handle_text_message(body_text, channel, thread_ts, slack_client)
 
-def handle_file_upload(file, channel, thread_ts, slack_client):
+# file upload handlers
+def download_file(url, filename, slack_bot_token):
+  resp = requests.get(url, headers={'Authorization': f'Bearer {slack_bot_token}'})
+  with open(filename, 'wb') as f:
+    f.write(resp.content)
+
+def handle_file_upload(file, channel, thread_ts, slack_client, slack_bot_token):
+  '''
+  File upload handler. This runs when user uploads a valid media file.
+  '''
   title = file["title"]
   url = file["url_private"]
-  filename = "temp." + file["filetype"]
-  download_file(url, filename)
-
-  post_message(slack_client, channel, thread_ts, f"{title}ファイルの文字起こしを行います。")
+  filename = "/tmp/temp." + file["filetype"]
+  download_file(url, filename, slack_bot_token)
 
   transcriber = Transcriber()
   summarizer = Summarizer()
@@ -43,17 +55,10 @@ def handle_file_upload(file, channel, thread_ts, slack_client):
 
   summarized_data = summarizer.meeting_minutes(transcription)
   post_summary_message(summarized_data, title, channel, thread_ts, slack_client)
+  # remove file from lambda environment after processing
   os.remove(filename)
 
-def download_file(url, filename):
-  resp = requests.get(url, headers={'Authorization': f'Bearer {os.environ["SLACK_BOT_TOKEN"]}'})
-  with open(filename, 'wb') as f:
-    f.write(resp.content)
-
-def post_invalid_file_message(channel, thread_ts, slack_client):
-  output = "適合するファイルではありません。以下、いずれかの形式のファイルを添付してください。\nmp3, mp4, mpeg, mpga, m4a, wav, webm"
-  post_message(slack_client, channel, thread_ts, output)
-
+# handler
 def handle_text_message(body_text, channel, thread_ts, slack_client):
   message_received = body_text['text']
   youtube_url_match = re.search(r'(https?://[^\s]+)', message_received)
@@ -62,9 +67,10 @@ def handle_text_message(body_text, channel, thread_ts, slack_client):
   else:
     post_no_file_message(channel, thread_ts, slack_client)
 
+
 def process_youtube_url(youtube_url, message_received, channel, thread_ts, slack_client):
   try:
-    output = "YoutubeのURLを受け取りました。処理完了までしばらくお待ちください"
+    output = "Youtube URL received. Please wait a moment while the process is completed."
     post_message(slack_client, channel, thread_ts, output)
 
     filename = download_youtube_video(youtube_url, '/tmp/', 'youtube_video.mp4')
@@ -73,24 +79,39 @@ def process_youtube_url(youtube_url, message_received, channel, thread_ts, slack
     summarizer = Summarizer()
     process_video(filename, message_received, transcriber, summarizer, channel, thread_ts, slack_client)
   except Exception as e:
-    post_message(slack_client, channel, thread_ts, f"エラーが発生しました: {e}")
+    post_message(slack_client, channel, thread_ts, f"Error occured: {e}")
+
 
 def process_video(filename, message_received, transcriber, summarizer, channel, thread_ts, slack_client):
   transcription = transcriber.transcribe(filename)
-  if "文字起こし" in message_received and "要約" in message_received:
+  if "transcribe" in message_received and "summarize" in message_received:
     summarized_data = summarizer.meeting_minutes(transcription)
     post_summary_message(summarized_data, filename, channel, thread_ts, slack_client)
-  elif "要約" in message_received:
+  elif "summarize" in message_received:
     summarized_data = summarizer.meeting_minutes(transcription)
     post_message(slack_client, channel, thread_ts, summarized_data)
-  elif "文字起こし" in message_received:
+  elif "transcribe" in message_received:
     post_message(slack_client, channel, thread_ts, transcription)
   os.remove(filename)
 
-def post_no_file_message(channel, thread_ts, slack_client):
-  output = "ファイルが見つかりません。\n私はspeech to text AIです。以下、いずれかの形式のファイルを添付してください。\nmp3, mp4, mpeg, mpga, m4a, wav, webm。または、YoutubeのURLを送ってください。"
+# Posting Messages Functions
+def post_summary_message(summarized_data, title, channel, thread_ts, slack_client):
+  '''
+  posts summary
+  '''
+  summary_output = f"Summarized {title} \n *Summary* \n {summarized_data['summary']} \n *Key Points* \n {summarized_data['key_points']} \n *Action Items* \n {summarized_data['action_items']}"
+  post_message(slack_client, channel, thread_ts, summary_output)
+
+def post_invalid_file_message(channel, thread_ts, slack_client):
+  '''
+  posts invalid file message
+  '''
+  output = f"Invalid file. Please attach files in one of the following formats. \n mp3, mp4, mpeg, mpga, m4a, wav, webm"
   post_message(slack_client, channel, thread_ts, output)
 
-def post_summary_message(summarized_data, title, channel, thread_ts, slack_client):
-  summary_output = f"要約しました：{title} \n *会議の要約* \n {summarized_data['会議の要約']} \n *要点* \n {summarized_data['要点']} \n *行動項目* \n {summarized_data['行動項目']}"
-  post_message(slack_client, channel, thread_ts, summary_output)
+def post_no_file_message(channel, thread_ts, slack_client):
+  '''
+  posts no file message
+  '''
+  output = "File not found. \n I am a speech to text AI Assistant. Please attach a file in one of the following formats. \nmp3, mp4, mpeg, mpga, m4a, wav, webm. or send me the Youtube URL."
+  post_message(slack_client, channel, thread_ts, output)
