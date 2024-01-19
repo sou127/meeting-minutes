@@ -37,6 +37,18 @@ Contains the code for Lambda functions and their specific dependencies:
    - AWS CLI installed and configured.
    - Node.js and AWS CDK installed.
    - Slack API tokens and necessary permissions.
+   - Setup SSM Parameters using following commands:
+      ```bash
+      aws ssm put-parameter --name "/meeting_summarizer/openai_api_key" --value <openai_api_key> --type SecureString
+
+      aws ssm put-parameter --name "/meeting_summarizer/slack_bot_token" --value <slack_bot_token> --type SecureString
+
+      export INPUT_QUEUE_NAME=<SQSQueueName>
+      aws ssm put-parameter --name "/meeting_summarizer/input_queue_name" --value <slack_bot_token> --type SecureString
+
+      # command to check the parameters
+      aws ssm get-parameters-by-path --path "/meeting_summarizer" --query 'Parameters[*].Name'
+      ```
 
 2. **Clone the Repository:**
   - Clone the repository using following command:
@@ -45,10 +57,12 @@ Contains the code for Lambda functions and their specific dependencies:
     cd meeting_summarizer
     ```
 
-
 3. **Install Dependencies:**
   - Navigate to each lambda function directory and install dependencies (using a virtual environment is recommended):
-    ```
+    ```bash
+    python3 -m venv .venv
+    source .venv/bin/activate # on mac
+    source .venv\Scripts\activate # on windows
     pip install -r requirements.txt
     ```
 
