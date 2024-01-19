@@ -55,16 +55,6 @@ def push_file_info_to_sqs(event):
     sqs_response = _sendToSqS(queue_url, slack_event)
     logger.info(f"SQS Response: {sqs_response}")
 
-    # ユーザに受け取り通知を送る
-    try:
-        chat_response = slack_client.chat_postMessage(
-        channel=channel,
-        thread_ts=thread_ts,
-        text=f"<@{user_id}> メッセージを受け取りました！ :tada: ファイルを処理して送りますので、少々お待ちください"
-        )
-    except SlackApiError as e:
-        print(e)
-        print(e.__str__())
     return {"ok": True}
 
 def handler(event, context):

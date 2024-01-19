@@ -6,8 +6,7 @@ from infrastructure.ssm_parameters import setup_ssm_parameters
 from infrastructure.lambda_functions import (
     create_payload_handler_lambda, 
     create_push_to_sqs_handler_lambda,
-    create_slack_bot_handler_lambda,
-    create_ffmpeg_layer
+    create_slack_bot_handler_lambda
 )
 from aws_cdk import (
     core,
@@ -28,13 +27,10 @@ class MeetingSummarizerStack(core.Stack):
 
         self.sqs_queue = create_sqs_queue(self, APP_NAME)
 
-        self.ffmpeg_layer = create_ffmpeg_layer(self, APP_NAME)
-
         self.payload_handler_lambda = create_payload_handler_lambda(self, APP_NAME)
         self.push_to_sqs_handler_lambda = create_push_to_sqs_handler_lambda(self, APP_NAME)
-        self.slack_bot_handler_lambda = create_slack_bot_handler_lambda(self, APP_NAME)
+        self.slack_bot_handler_lambda = create_slack_bot_handler_lambda(self, APP_NAME, self.sqs_queue)
 
-        # target_lambda_arn = "arn:aws:lambda:ap-northeast-1:006860306333:function:MeetingSummarizer-MeetingSummarizerPushToSqsLambda-RlRdhKXEqaxk"
         setup_lambda_permissions(self, self.payload_handler_lambda)
 
         sqs_trigger = lambda_event_sources.SqsEventSource(self.sqs_queue)
