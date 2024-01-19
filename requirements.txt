@@ -1,2 +1,8 @@
-aws-cdk-lib==2.121.1
-constructs>=10.0.0,<11.0.0
+aws-cdk.core==1.91.0
+
+aws-cdk.aws-lambda==1.91.0
+aws_cdk.aws_lambda_python==1.91.0
+aws-cdk.aws_apigateway==1.91.0
+aws_cdk.aws_ssm==1.91.0
+aws_cdk.aws_sqs
+aws_cdk.aws_lambda_event_sources
