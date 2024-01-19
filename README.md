@@ -43,8 +43,7 @@ Contains the code for Lambda functions and their specific dependencies:
 
       aws ssm put-parameter --name "/meeting_summarizer/slack_bot_token" --value <slack_bot_token> --type SecureString
 
-      export INPUT_QUEUE_NAME=<SQSQueueName>
-      aws ssm put-parameter --name "/meeting_summarizer/input_queue_name" --value <slack_bot_token> --type SecureString
+      aws ssm put-parameter --name "/meeting_summarizer/input_queue_name" --value <SQSQueueName> --type SecureString
 
       # command to check the parameters
       aws ssm get-parameters-by-path --path "/meeting_summarizer" --query 'Parameters[*].Name'
@@ -52,8 +51,8 @@ Contains the code for Lambda functions and their specific dependencies:
 
 2. **Clone the Repository:**
   - Clone the repository using following command:
-    ```
-    git clone [repository URL]
+    ```bash
+    git clone https://github.com/sou127/meeting-minutes.git
     cd meeting_summarizer
     ```
 
@@ -61,14 +60,14 @@ Contains the code for Lambda functions and their specific dependencies:
   - Navigate to each lambda function directory and install dependencies (using a virtual environment is recommended):
     ```bash
     python3 -m venv .venv
-    source .venv/bin/activate # on mac
-    source .venv\Scripts\activate # on windows
+    . .venv/bin/activate # on mac/linux
+    .\.venv\Scripts\activate # on windows
     pip install -r requirements.txt
     ```
 
 4. **Deploy with AWS CDK:**
   - From the root directory, deploy the infrastructure using CDK:
-    ```
+    ```bash
     cdk deploy
     ```
 
