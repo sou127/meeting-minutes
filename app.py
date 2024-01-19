@@ -1,4 +1,5 @@
 import os
+from config import ENV, APP_NAME
 from infrastructure.queues import create_sqs_queue
 from infrastructure.permissions import setup_lambda_permissions
 from infrastructure.api_gateway import create_api_gateway
@@ -12,14 +13,6 @@ from aws_cdk import (
     core,
     aws_lambda_event_sources as lambda_event_sources
 )
-
-APP_NAME = "MeetingSummarizer"
-SSM_PARAMETER_NAMES = [
-    "/meeting_summarizer/slack_bot_token", 
-    "/meeting_summarizer/slack_signing_secret", 
-    "/meeting_summarizer/openai_api_key",
-    "/meeting_summarizer/input_queue_name"
-]
 
 class MeetingSummarizerStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
@@ -60,6 +53,5 @@ class MeetingSummarizerStack(core.Stack):
         )
             
 app = core.App()
-env = core.Environment(account=os.getenv("CDK_DEFAULT_ACCOUNT"), region=os.getenv("CDK_DEFAULT_REGION"))
-MeetingSummarizerStack(app, APP_NAME, env=env)
+MeetingSummarizerStack(app, APP_NAME, env=ENV)
 app.synth()
