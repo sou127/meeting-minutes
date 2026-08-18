@@ -1,5 +1,5 @@
 slack_sdk
-urllib3==2.5.0
+urllib3==2.7.0
 openai
 pytube
 requests
